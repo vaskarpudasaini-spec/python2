@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bulk Email Sender Dashboard</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:#f4f6f9;
+    padding:30px;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+}
+
+.card{
+    background:#fff;
+    padding:30px;
+    border-radius:16px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.08);
+    margin-bottom:25px;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:25px;
+    color:#222;
+}
+
+h2{
+    margin-bottom:20px;
+    color:#333;
+}
+
+.input-group{
+    margin-bottom:20px;
+}
+
+label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:bold;
+    color:#333;
+}
+
+input,
+textarea{
+    width:100%;
+    padding:14px;
+    border:1px solid #ccc;
+    border-radius:10px;
+    outline:none;
+    font-size:15px;
+}
+
+textarea{
+    resize:vertical;
+}
+
+input:focus,
+textarea:focus{
+    border-color:#0f9d58;
+}
+
+button{
+    width:100%;
+    border:none;
+    padding:16px;
+    border-radius:10px;
+    background:#0f9d58;
+    color:white;
+    font-size:18px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    background:#0b8043;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+table th{
+    background:#0f9d58;
+    color:white;
+    padding:14px;
+    text-align:left;
+}
+
+table td{
+    padding:12px;
+    border-bottom:1px solid #ddd;
+}
+
+.success{
+    color:green;
+    font-weight:bold;
+}
+
+.failed{
+    color:red;
+    font-weight:bold;
+}
+
+.scheduled{
+    color:orange;
+    font-weight:bold;
+}
+
+.note{
+    margin-top:15px;
+    color:#666;
+    text-align:center;
+}
+
+@media(max-width:900px){
+
+    .grid{
+        grid-template-columns:1fr;
+    }
+
+    body{
+        padding:15px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Email Form -->
+    <div class="card">
+
+        <h1>Bulk Email Sender</h1>
+
+        <form
+            action="/send"
+            method="POST"
+            enctype="multipart/form-data"
+        >
+
+            <div class="input-group">
+                <label>Email Subject</label>
+
+                <input
+                    type="text"
+                    name="subject"
+                    required
+                    placeholder="Enter email subject"
+                >
+            </div>
+
+            <div class="grid">
+
+                <div class="input-group">
+
+                    <label>
+                        Recipient Emails
+                        (One Email Per Line)
+                    </label>
+
+                    <textarea
+                        name="emails"
+                        rows="12"
+                        required
+                        placeholder="abc@gmail.com
+xyz@gmail.com
+company@email.com"
+                    ></textarea>
+
+                </div>
+
+                <div class="input-group">
+
+                    <label>
+                        Email Content
+                        (HTML Supported)
+                    </label>
+
+                    <textarea
+                        name="message"
+                        rows="12"
+                        required
+                        placeholder="Write your email content..."
+                    ></textarea>
+
+                </div>
+
+            </div>
+
+            <div class="grid">
+
+                <div class="input-group">
+
+                    <label>
+                        Attachments
+                    </label>
+
+                    <input
+                        type="file"
+                        name="attachments"
+                        multiple
+                    >
+
+                </div>
+
+                <div class="input-group">
+
+                    <label>
+                        Delay Between Emails
+                        (Seconds)
+                    </label>
+
+                    <input
+                        type="number"
+                        name="delay"
+                        value="120"
+                        min="10"
+                    >
+
+                </div>
+
+            </div>
+
+            <button type="submit">
+                SEND EMAILS
+            </button>
+
+        </form>
+
+        <div class="note">
+            Emails are sent automatically using configured Gmail account.
+        </div>
+
+    </div>
+
+
+    <!-- Dashboard -->
+    <div class="card">
+
+        <h2>Email Sending Dashboard</h2>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Time</th>
+                    <th>Error</th>
+                </tr>
+            </thead>
+
+            <tbody id="dashboard">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script>
+
+function loadStatus(){
+
+    fetch('/status')
+    .then(response => response.json())
+    .then(data => {
+
+        let html = '';
+
+        data.reverse().forEach(item => {
+
+            let statusClass = '';
+
+            if(item.status === "SUCCESS"){
+                statusClass = "success";
+            }
+
+            else if(item.status === "FAILED"){
+                statusClass = "failed";
+            }
+
+            else{
+                statusClass = "scheduled";
+            }
+
+            html += `
+            <tr>
+                <td>${item.email}</td>
+
+                <td class="${statusClass}">
+                    ${item.status}
+                </td>
+
+                <td>${item.time}</td>
+
+                <td>
+                    ${item.error || '-'}
+                </td>
+            </tr>
+            `;
+        });
+
+        document.getElementById(
+            'dashboard'
+        ).innerHTML = html;
+
+    });
+}
+
+loadStatus();
+
+setInterval(
+    loadStatus,
+    2000
+);
+
+</script>
+
+</body>
+</html>
