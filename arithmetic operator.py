@@ -12,7 +12,7 @@ print(-17 // 5) # → -4 (rounds DOWN, not towards zero!)
 print(17 % 5) # → 2 (17 = 3×5 + 2)
 print(10 % 2) # → 0 (10 divides evenly — no remainder)
 print(7 % 2) # → 1 (7 is odd)
-# Exponentiation
+# Exponentiption
 print(2 ** 10) # → 1024
 print(64 ** 0.5) # → 8.0 (square root)
 print(27 ** (1/3)) # → 3.0 (cube root)
